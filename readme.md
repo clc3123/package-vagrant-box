@@ -43,8 +43,8 @@ Virtualbox界面双击虚拟机开始安装：
 
 按这篇文章进行修改
 
-    + http://splatoperator.com/2012/04/clone-ubuntu-vms-in-virtualbox/
-    + http://splatoperator.com/2012/11/prevent-virtual-machines-from-saving-network-interface-udev-rules/
++ http://splatoperator.com/2012/04/clone-ubuntu-vms-in-virtualbox/
++ http://splatoperator.com/2012/11/prevent-virtual-machines-from-saving-network-interface-udev-rules/
 
 3.设置vagrant账户
 -----------------
