@@ -31,9 +31,9 @@
 
 Virtualbox界面双击虚拟机开始安装：
 
-  +   选择LVM方式自动分区
-  +   默认帐密：vagrant:vagrant
-  +   hostname使用precise64devbox
+  + 选择LVM方式自动分区
+  + 默认帐密：vagrant:vagrant
+  + hostname使用precise64devbox
 
 安装成功后会自动重启一下，然后我们先关机，到虚拟机设置里的 `System -> Motherboard` 设置硬盘优先启动，然后到Storage下，让光驱加载VirtualboxGuestAdditions的镜像
 
@@ -41,7 +41,10 @@ Virtualbox界面双击虚拟机开始安装：
 
 再次启动VM，会不能上网，ping不通外网，因为在 `/etc/udev/rules.d/70-persistent-net.rules` 中会将VM原先的网卡mac绑定到eth0，而新的网卡mac依顺序只能绑定到eth1，而ifconfig中显示只有eth0是启用的
 
-按这篇文章进行修改 http://splatoperator.com/2012/04/clone-ubuntu-vms-in-virtualbox/
+按这篇文章进行修改
+
+    + http://splatoperator.com/2012/04/clone-ubuntu-vms-in-virtualbox/
+    + http://splatoperator.com/2012/11/prevent-virtual-machines-from-saving-network-interface-udev-rules/
 
 3.设置vagrant账户
 -----------------
