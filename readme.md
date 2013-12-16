@@ -1,117 +1,112 @@
-从头打包vagrant box，以precise64为例
-====================================
+# 打包vagrant precise64 devbox
 
-参考资料 http://pyfunc.blogspot.co.uk/2011/11/creating-base-box-from-scratch-for.html
+参考资料 <http://pyfunc.blogspot.co.uk/2011/11/creating-base-box-from-scratch-for.html>
 
-1.新建虚拟机
-------------
+## 1.新建虚拟机
 
 类型选择ubuntu 64bit，512M内存，vmdk磁盘格式，动态分配最大18G空间
 
 虚拟机建立好之后，在安装系统前，通过virtualbox界面设置下虚拟机：
 
 +   General -> Advanced
+
     -   关闭共享剪贴板和拖拽
+
 +   System -> Motherboard 
-    -   启动顺序将光驱排到第一位，硬盘第二位（因为要加载iso安装系统，系统安装之后再对调回来）
+
+    -   内存设为512M，今后要改可通过vagrantfile设置
+
+    -   启动顺序，光驱排到第一位，硬盘第二位（光驱加载iso安装系统，之后再设置仅启动硬盘）
+
+    -   Chipset选择PIIX3就可以了
+
     -   开启IO APIC和UTC时钟
+
 +   System -> Processor
+
     -   选择双核
+
     -   开启CPU的PAE/NX
+
++   System -> Acceleration
+
+    硬件虚拟化两个都勾选上
+
 +   Storage
-    -   SATA和IDE都开启use host I/O cache
-    -   光驱选择加载ubuntu镜像，等下安装
-+   Audio 关闭
-+   Networks 第一块网卡
+
+    -   确保有一个SATA或IDE的光驱，没有的话就添加一个，并加载ubuntu镜像，等下安装
+
+    -   为SATA或IDE Controller开启use host I/O cache
+
++   Audio
+
+    关闭
+
++   Networks
+
+    暂时先设置第一块网卡界面就够了，其它通过vagrant来添加
+
     -   开启NAT
+
     -   (可选)Port Forwarding: SSH TCP host 2222 -> guest 22
 
-2.安装系统
-----------
+## 2.安装系统
 
 Virtualbox界面双击虚拟机开始安装：
 
-  + 选择LVM方式自动分区
-  + 默认帐密：vagrant:vagrant
-  + hostname使用precise64devbox
++   选择LVM方式自动分区
 
-安装成功后会自动重启一下，然后我们先关机，到虚拟机设置里的 `System -> Motherboard` 设置硬盘优先启动，然后到Storage下，让光驱加载VirtualboxGuestAdditions的镜像
++   默认帐密：vagrant:vagrant
+
++   hostname使用precise64devbox，当然这个之后也能用vagrantfile设置
+
+安装成功后会自动重启一下，然后我们先关机，到虚拟机设置里的 `System -> Motherboard` 设置仅硬盘启动；另外在 `storage` 下，可以把光驱（及其控制器）删除，用不到了。
 
 因为这时候VM的系统是纯净的，我们可以让Virtualbox克隆一份VM，然后在克隆出的这份VM上进行后续操作（注意克隆时勾选重新生成网卡mac）
 
-再次启动VM，会不能上网，ping不通外网，因为在 `/etc/udev/rules.d/70-persistent-net.rules` 中会将VM原先的网卡mac绑定到eth0，而新的网卡mac依顺序只能绑定到eth1，而ifconfig中显示只有eth0是启用的
+## 3. 执行package.sh
 
-按这篇文章进行修改
+先设置一个共享文件目录，务必勾选上read-only和auto-mount，把VBoxGuestAdditions和Chef等需要翻墙下载的大文件放进去。
 
-+ http://splatoperator.com/2012/04/clone-ubuntu-vms-in-virtualbox/
-+ http://splatoperator.com/2012/11/prevent-virtual-machines-from-saving-network-interface-udev-rules/
+然后启动系统后，执行：
 
-3.设置vagrant账户
------------------
+    $ sudo su -
+    $ curl 
 
-需要先以vagrant用户登录
+脚本主要做一些vagrant打包前的设置，下面是一些要点的说明：
 
-1.  在/etc/sudoers.d/下建立vagrant文件，加入：
+1.  为vagrant用户设置sudo免输密码
 
-        vagrant ALL=(ALL) NOPASSWD:ALL
-        
-    这样sudo就不用输入密码了
+2.  将vagrant源码中的公钥加入vagrant用户的ssh受信任公钥列表
 
-2.  把vagrant_insecure_public_key加入 `~/.ssh/authorized_keys`
+3.  启动克隆出的VM，会发现不能上网，ping不通外网。
 
-        $ mkdir -p ~/.ssh
-        $ cd ~/.ssh
-        $ wget https://raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub
-        $ mv vagrant.pub authorized_keys
-        $ chmod 644 authorized_keys
+    查看 `/etc/udev/rules.d/70-persistent-net.rules` ，原来我们唯一启用的eth0已被使用旧mac地址的网卡占用，而使用新mac地址的网卡依顺序只能绑定到eth1，因此无法上网。
 
-    这样vagrant帐号就可以免密钥登录了
+    按这篇文章进行修改
 
-4.设置网易的更新源
-------------------
+    +   <http://splatoperator.com/2012/04/clone-ubuntu-vms-in-virtualbox/>
+    +   <http://splatoperator.com/2012/11/prevent-virtual-machines-from-saving-network-interface-udev-rules/>
 
-    $ sudo apt-get update
-    $ sudo apt-get dist-upgrade
+4.  在此查看chef安装方法 <http://www.opscode.com/chef/install/>
 
-5.安装chef
-----------
+        $ curl -L https://www.opscode.com/chef/install.sh | sudo bash
 
-在此查看安装方法 http://www.opscode.com/chef/install/
+    由于chef安装包下载要翻墙，所以推荐下载好了之后，再用dpkg安装。
 
-    $ curl -L https://www.opscode.com/chef/install.sh | sudo bash
+5.  安装VirtualboxGuestAdditions <http://www.virtualbox.org/manual/ch04.html>
 
-6.安装VirtualboxGuestAdditions
-------------------------------
+        $ sudo mount -o loop VBoxGuestAdditions_4.2.10.iso /mnt
 
-安装依赖并挂载光驱：
+6.  安装nfs-common，vagrant在osx、linux下通过nfs来共享目录
 
-    $ sudo apt-get install dkms build-essential linux-headers-`uname -r`
-    $ sudo mount /dev/sr0 /mnt
-    
-如果之前忘记往光驱加载镜像，其实也可以通过网上下载iso后，直接挂载：
+7.  将磁盘可写入部分完全清零，稍后打包box时virtualbox压缩磁盘可获得更小的镜像：
 
-    $ wget -c http://download.virtualbox.org/virtualbox/4.2.10/VBoxGuestAdditions_4.2.10.iso
-    $ sudo mount -o loop VBoxGuestAdditions_4.2.10.iso /mnt
-    
-执行安装：
+        $ dd if=/dev/zero of=/empty bs=1M
+        $ rm -f /empty
 
-    $ cd /mnt
-    $ sudo ./VBoxLinuxAdditions.run --nox11
-    $ sudo reboot
+    About zeroing data <http://support.apple.com/kb/HT1820>
 
-7.其它
-------
+    The information on your hard disk is written in just zeros and ones, known as binary. A special type of file on the disk, called a directory, indicates which groupings of binary digits constitute files. If you erase a disk by doing a quick initialization, the disk's directory is emptied. This is analogous to removing the table of contents from a book but leaving all the other pages intact. Since the system can no longer identify the files in the absence of this table of contents, it ignores them, overwriting them on an ongoing basis as if they were not there. This means that any file on that disk remains in a potentially recoverable state until you fill the disk with new data. You may notice that the Finder references "available" space, not "empty" space. This can help to remind you that a disk is only truly empty when you deliberately make it that way. The "Zero all data" option is one way to do that. Zeroing data takes the erasure process to the next level by converting all binary in the empty portion of the disk to zeros, a state that might be described as digitally blank. This significantly decreases the chance that anyone who obtains your hard drive after it has been initialized will be able to recover your files.
 
-将磁盘可写入部分完全清零，稍后打包box时virtualbox压缩磁盘可获得更小的镜像：
-
-    $ dd if=/dev/zero of=/empty bs=1M
-    $ rm -f /empty
-
-http://support.apple.com/kb/HT1820
-About zeroing data
-
-The information on your hard disk is written in just zeros and ones, known as binary. A special type of file on the disk, called a directory, indicates which groupings of binary digits constitute files. If you erase a disk by doing a quick initialization, the disk's directory is emptied. This is analogous to removing the table of contents from a book but leaving all the other pages intact. Since the system can no longer identify the files in the absence of this table of contents, it ignores them, overwriting them on an ongoing basis as if they were not there. This means that any file on that disk remains in a potentially recoverable state until you fill the disk with new data. You may notice that the Finder references "available" space, not "empty" space. This can help to remind you that a disk is only truly empty when you deliberately make it that way. The "Zero all data" option is one way to do that. Zeroing data takes the erasure process to the next level by converting all binary in the empty portion of the disk to zeros, a state that might be described as digitally blank. This significantly decreases the chance that anyone who obtains your hard drive after it has been initialized will be able to recover your files.
-
-然后可以去Storage下，把光驱对应的那个IDE控制器删除，因为用不到了
-
-貌似也可以把port forwarding去掉，因为到时vagrant打包box会清除已有的端口转发并重新设置
+接下来关机，去设置中，将共享目录删除。
