@@ -11,7 +11,7 @@ done_echo()
   echo "================================================================================"
 }
 
-echo > /home/vagrant/.vagrant_box_meta.yml <<METAYML
+cat > /home/vagrant/.vagrant_box_meta.yml <<METAYML
 packaging_date: $(date +%F)
 os_version: $(lsb_release -ds)
 chef_client_version: ${CHEF_VERSION}
@@ -21,7 +21,7 @@ chown vagrant:vagrant /home/vagrant/.vagrant_box_meta.yml
 chmod 0444 /home/vagrant/.vagrant_box_meta.yml
 done_echo "DONE saving /home/vagrant/.vagrant_box_meta.yml"
 
-echo > /etc/apt/sources.list <<SOURCE
+cat > /etc/apt/sources.list <<SOURCE
 deb http://mirrors.163.com/ubuntu/ precise main restricted universe multiverse
 deb http://mirrors.163.com/ubuntu/ precise-updates main restricted universe multiverse
 deb http://mirrors.163.com/ubuntu/ precise-security main restricted universe multiverse

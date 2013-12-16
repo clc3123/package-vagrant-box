@@ -71,7 +71,7 @@ Virtualbox界面双击虚拟机开始安装：
 然后启动系统后，执行：
 
     $ sudo su -
-    $ curl 
+    $ curl package.sh.bitbucketurl | bash
 
 脚本主要做一些vagrant打包前的设置，下面是一些要点的说明：
 
