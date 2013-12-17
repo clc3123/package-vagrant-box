@@ -47,8 +47,8 @@ apt-get -y purge $(dpkg -l linux-* | sed '/^ii/!d;/'$CKERNEL'/d;s/^ii  \([^ ]*\)
 update-grub
 done_echo "removing old kernels & updating grub if possible"
 
-apt-get -y install build-essential vim-nox tree byobu htop nfs-common
-done_echo "installing build-essential vim-nox tree byobu htop nfs-common"
+apt-get -y install build-essential nfs-common openssh-server
+done_echo "installing build-essential nfs-common openssh-server"
 
 apt-get -y install dkms
 if ! (which VBoxControl && VBoxControl version | grep "\b${VBOX_VERSION}r")
@@ -59,6 +59,17 @@ then
   umount /mnt
 fi
 done_echo "installing virtualbox guest additions ${VBOX_VERSION}"
+
+if ! (which chef-client && chef-client -v | grep "\b${CHEF_VERSION}\b")
+then
+  dpkg -i ${VBOX_SHARED_FOLDER}/chef_${CHEF_VERSION}-1.ubuntu.12.04_amd64.deb
+fi
+done_echo "installing chef-client ${CHEF_VERSION}"
+
+sleep 5
+umount ${VBOX_SHARED_FOLDER}
+rm -rf ${VBOX_SHARED_FOLDER}
+done_echo "removing virtualbox shared folder"
 
 echo 'vagrant ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/vagrant
 chmod 0440 /etc/sudoers.d/vagrant
@@ -74,38 +85,27 @@ then
 fi
 done_echo "trusting vagrant ssh pubkey"
 
-if ! (which chef-client && chef-client -v | grep "\b${CHEF_VERSION}\b")
-then
-  dpkg -i ${VBOX_SHARED_FOLDER}/chef_${CHEF_VERSION}-1.ubuntu.12.04_amd64.deb
-fi
-done_echo "installing chef-client ${CHEF_VERSION}"
-
-sleep 5
-umount ${VBOX_SHARED_FOLDER}
-rm -rf ${VBOX_SHARED_FOLDER}
-done_echo "removing virtualbox shared folder"
-
 apt-get -y --purge autoremove
-apt-get --purge clean
+apt-get -y --purge clean
 done_echo "cleaning up apt things"
 
 rm -f /var/lib/dhcp/*
 done_echo "cleaning up dhcp leases"
 
-if [ ! -d /etc/udev/rules.d/70-persistent-net.rules ]
-then
-  rm -f /etc/udev/rules.d/70-persistent-net.rules
-  mkdir /etc/udev/rules.d/70-persistent-net.rules
-fi
-rm -f /lib/udev/rules.d/75-persistent-net-generator.rules
-rm -rf /dev/.udev/
-done_echo "cleaning up udev rules"
+# if [ ! -d /etc/udev/rules.d/70-persistent-net.rules ]
+# then
+#   rm -f /etc/udev/rules.d/70-persistent-net.rules
+#   mkdir /etc/udev/rules.d/70-persistent-net.rules
+# fi
+# rm -f /lib/udev/rules.d/75-persistent-net-generator.rules
+# rm -rf /dev/.udev/
+# done_echo "cleaning up udev rules"
 
 rm -f /root/.bash_history
 rm -f /root/.viminfo
+rm -rf /root/.cache
 rm -f /home/vagrant/.bash_history
 rm -f /home/vagrant/.viminfo
-rm -rf /home/vagrant/.byobu
 rm -rf /home/vagrant/.cache
 done_echo "removing runtime user info"
 
