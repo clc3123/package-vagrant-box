@@ -4,7 +4,7 @@
 
 ## 1.新建虚拟机
 
-类型选择ubuntu 64bit，512M内存，vmdk磁盘格式，动态分配最大12G空间(分多少自己定)
+类型选择ubuntu 64bit，512M内存，vmdk磁盘格式（貌似VDI也是可以的），动态分配最大12G空间(分多少自己定)
 
 虚拟机建立好之后，在安装系统前，通过virtualbox界面设置下虚拟机：
 
@@ -106,12 +106,14 @@ Virtualbox界面双击虚拟机开始安装：
 
 ## 3. 执行package.sh
 
-先设置一个共享文件目录，务必勾选上read-only和auto-mount，把VBoxGuestAdditions和Chef等需要翻墙下载的大文件放进去。
+先在vb的host（Linux or Mac）上，建一个目录，把package.sh，以及VBoxGuestAdditions和Chef等需要翻墙下载的大文件放进去。
 
-然后启动系统后，执行：
+然后用 `$ python -m SimpleHTTPServer 8080` 启一个下载服务器
+
+接着启动并进入guest系统，执行：
 
     $ sudo su -
-    $ curl package.sh.bitbucketurl | bash
+    $ curl http://192.168.1.100:8080/package.sh | bash
 
 脚本主要做一些vagrant打包前的设置，下面是一些要点的说明：
 
@@ -140,6 +142,4 @@ Virtualbox界面双击虚拟机开始安装：
 
     The information on your hard disk is written in just zeros and ones, known as binary. A special type of file on the disk, called a directory, indicates which groupings of binary digits constitute files. If you erase a disk by doing a quick initialization, the disk's directory is emptied. This is analogous to removing the table of contents from a book but leaving all the other pages intact. Since the system can no longer identify the files in the absence of this table of contents, it ignores them, overwriting them on an ongoing basis as if they were not there. This means that any file on that disk remains in a potentially recoverable state until you fill the disk with new data. You may notice that the Finder references "available" space, not "empty" space. This can help to remind you that a disk is only truly empty when you deliberately make it that way. The "Zero all data" option is one way to do that. Zeroing data takes the erasure process to the next level by converting all binary in the empty portion of the disk to zeros, a state that might be described as digitally blank. This significantly decreases the chance that anyone who obtains your hard drive after it has been initialized will be able to recover your files.
 
-接下来关机，去设置中，将共享目录删除。
-
-然后我们就可以用vagant package命令对VM进行打包操作了，完工！
+接下来关机，然后我们就可以用 `vagant package` 命令对VM进行打包操作了，完工！

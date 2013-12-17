@@ -15,14 +15,21 @@ fail_echo()
 }
 
 VBOX_VERSION="4.3.4"
-VBOX_SHARED_FOLDER=$(mount | grep vboxsf | awk '{print $3}')
-if [ ! $VBOX_SHARED_FOLDER ]
-then
-  fail_echo "there should be a virtualbox shared folder"
-  exit 1
-fi
-
+# VBOX_SHARED_FOLDER=$(mount | grep vboxsf | awk '{print $3}')
+# if [ ! $VBOX_SHARED_FOLDER ]
+# then
+#   fail_echo "there should be a virtualbox shared folder"
+#   exit 1
+# fi
 CHEF_VERSION="11.8.2"
+
+FILE_SERVER="http://192.168.1.100:8080"
+DOWNLOADS=/root/downloads
+rm -rf $DOWNLOADS
+mkdir $DOWNLOADS
+wget -O ${DOWNLOADS}/VBoxGuestAdditions_${VBOX_VERSION}.iso ${FILE_SERVER}/VBoxGuestAdditions_${VBOX_VERSION}.iso
+wget -O ${DOWNLOADS}/chef_${CHEF_VERSION}-1.ubuntu.12.04_amd64.deb ${FILE_SERVER}/chef_${CHEF_VERSION}-1.ubuntu.12.04_amd64.deb
+done_echo "downloading necessary files"
 
 cat > /etc/apt/sources.list <<SOURCE
 deb http://mirrors.163.com/ubuntu/ precise main restricted universe multiverse
@@ -51,9 +58,9 @@ apt-get -y install build-essential nfs-common openssh-server
 done_echo "installing build-essential nfs-common openssh-server"
 
 apt-get -y install dkms
-if ! (which VBoxControl && VBoxControl version | grep "\b${VBOX_VERSION}r")
+if ! (which VBoxControl && VBoxControl -v | grep "^${VBOX_VERSION}r")
 then
-  mount -o loop ${VBOX_SHARED_FOLDER}/VBoxGuestAdditions_${VBOX_VERSION}.iso /mnt
+  mount -o loop ${DOWNLOADS}/VBoxGuestAdditions_${VBOX_VERSION}.iso /mnt
   /mnt/VBoxLinuxAdditions.run --nox11
   sleep 5
   umount /mnt
@@ -62,14 +69,12 @@ done_echo "installing virtualbox guest additions ${VBOX_VERSION}"
 
 if ! (which chef-client && chef-client -v | grep "\b${CHEF_VERSION}\b")
 then
-  dpkg -i ${VBOX_SHARED_FOLDER}/chef_${CHEF_VERSION}-1.ubuntu.12.04_amd64.deb
+  dpkg -i ${DOWNLOADS}/chef_${CHEF_VERSION}-1.ubuntu.12.04_amd64.deb
 fi
 done_echo "installing chef-client ${CHEF_VERSION}"
 
-sleep 5
-umount ${VBOX_SHARED_FOLDER}
-rm -rf ${VBOX_SHARED_FOLDER}
-done_echo "removing virtualbox shared folder"
+rm -rf ${DOWNLOADS}
+done_echo "removing downloads directory"
 
 echo 'vagrant ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/vagrant
 chmod 0440 /etc/sudoers.d/vagrant
