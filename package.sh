@@ -55,6 +55,7 @@ if ! (which VBoxControl && VBoxControl version | grep "\b${VBOX_VERSION}r")
 then
   mount -o loop ${VBOX_SHARED_FOLDER}/VBoxGuestAdditions_${VBOX_VERSION}.iso /mnt
   /mnt/VBoxLinuxAdditions.run --nox11
+  sleep 5
   umount /mnt
 fi
 done_echo "installing virtualbox guest additions ${VBOX_VERSION}"
@@ -79,6 +80,7 @@ then
 fi
 done_echo "installing chef-client ${CHEF_VERSION}"
 
+sleep 5
 umount ${VBOX_SHARED_FOLDER}
 rm -rf ${VBOX_SHARED_FOLDER}
 done_echo "removing virtualbox shared folder"
