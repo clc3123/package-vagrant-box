@@ -20,7 +20,7 @@
 
     -   Chipset选择PIIX3就可以了
 
-    -   EFI不用开了
+    -   EFI不开
 
     -   开启IO APIC和UTC时钟
 
@@ -74,7 +74,8 @@ Virtualbox界面双击虚拟机开始安装：
 
 注，Virtualbox生成的MAC地址都是 `08:00:27:*` 这个结构。接下来删除已生成的udev规则：
     
-    # rm -f /etc/udev/rules.d/70-persistent-net.rules
+    $ rm -f /etc/udev/rules.d/70-persistent-net.rules
+    $ rm -f /etc/udev/rules.d/70-persistent-cd.rules
 
 这样设置的原因可参考以下文章：
 

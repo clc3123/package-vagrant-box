@@ -1,0 +1,76 @@
+{
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "vm_name": "precise64raring-{{timestamp}}",
+      "guest_os_type": "Ubuntu_64",
+      "hard_drive_interface": "sata",
+      "boot_command": [
+        "<esc><esc><enter><wait>",
+        "/install/vmlinuz <wait>",
+        "preseed/interactive=false <wait>",
+        "preseed/url=http://{{.HTTPIP}}:{{.HTTPPort}}/preseed.cfg <wait>",
+        "debian-installer/framebuffer=false <wait>",
+        // Label `auto` is not working as described in debian installation guide.
+        // You need to be verbose here to get the same effect as `auto`.
+        "auto-install/enable=true <wait>",
+        "debconf/priority=critical <wait>",
+        "debconf/frontend=noninteractive <wait>",
+        // Preseed netcfg here in order to fetch preseed.cfg.
+        "netcfg/choose_interface=auto <wait>",
+        "netcfg/dhcp_timeout=60 <wait>",
+        "netcfg/get_hostname={{.Name}} <wait>",
+        "netcfg/get_domain=vagrantup.com <wait>",
+        // `auto` let you delay configurations below into preseed.cfg.
+        // 'debian-installer/language=en ',
+        // 'debian-installer/country=CN ',
+        // 'debian-installer/locale=en_US.UTF-8 ',
+        // 'console-setup/ask_detect=false ',
+        // 'keyboard-configuration/modelcode=pc105 ',
+        // 'keyboard-configuration/layoutcode=us ',
+        // 'keyboard-configuration/variantcode=us ',
+        // Uncomment if you need to debug debconf: http://hands.com/d-i/
+        // "DEBCONF_DEBUG=5 <wait>",
+        "initrd=/install/initrd.gz -- <enter><wait>"
+      ],
+      "boot_wait": "10s",
+      "disk_size": 15360,
+      "virtualbox_version_file": null,
+      "guest_additions_mode": "disable",
+      "http_directory": "http",
+      "iso_checksum": "2cbe868812a871242cdcdd8f2fd6feb9",
+      "iso_checksum_type": "md5",
+      "iso_url": "http://192.168.1.100:8000/ubuntu-12.04.3-server-amd64.iso",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_wait_timeout": "1h",
+      "shutdown_command": "echo 'vagrant' | sudo -S shutdown -h now",
+      "shutdown_timeout": "30s",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "512"],
+        ["modifyvm", "{{.Name}}", "--ioapic", "on"],
+        ["modifyvm", "{{.Name}}", "--cpus", "2"],
+        ["modifyvm", "{{.Name}}", "--pae", "on"],
+        ["modifyvm", "{{.Name}}", "--rtcuseutc", "on"],
+        ["modifyvm", "{{.Name}}", "--mouse", "ps2"],
+        ["modifyvm", "{{.Name}}", "--audio", "none"]
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/package.sh"
+      ],
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh '{{.Path}}'"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "output": "outputs/{{.BuildName}}.box",
+    }
+  ]
+}
