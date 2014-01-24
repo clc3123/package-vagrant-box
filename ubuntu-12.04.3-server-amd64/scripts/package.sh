@@ -71,6 +71,7 @@ rm -rf /root/.cache/
 rm -f  /home/vagrant/.bash_history
 rm -f  /home/vagrant/.viminfo
 rm -rf /home/vagrant/.cache/
+rm -f  /home/vagrant/.vbox_version
 rm -rf /tmp/*
 rm -rf ${DOWNLOADS}
 done_msg "dumping trash"
@@ -87,6 +88,8 @@ done_msg "saving /home/vagrant/.vagrant_box_meta.yml"
 
 dd if=/dev/zero of=/empty bs=1M
 rm -f /empty
+dd if=/dev/zero of=/boot/empty bs=1M
+rm -f /boot/empty
 done_msg "zeroing data on disk"
 
 sleep 5

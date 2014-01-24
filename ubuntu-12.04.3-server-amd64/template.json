@@ -1,6 +1,6 @@
 {
   "variables": {
-    "box_name": "precise64raring-{{env `PACKAGING_DATE`}}",
+    "box_name": "precise64raring-{{env `PACKAGING_DATE`}}"
   },
   "builders": [
     {
@@ -38,7 +38,7 @@
       ],
       "boot_wait": "10s",
       "disk_size": 10240,
-      "virtualbox_version_file": null,
+      "virtualbox_version_file": ".vbox_version",
       "guest_additions_mode": "disable",
       "http_directory": "http",
       "iso_checksum": "2cbe868812a871242cdcdd8f2fd6feb9",
