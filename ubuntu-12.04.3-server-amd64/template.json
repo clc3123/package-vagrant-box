@@ -1,8 +1,11 @@
 {
+  "variables": {
+    "box_name": "precise64raring-{{env `PACKAGING_DATE`}}",
+  },
   "builders": [
     {
       "type": "virtualbox-iso",
-      "vm_name": "precise64raring-{{timestamp}}",
+      "vm_name": "{{user `box_name`}}",
       "guest_os_type": "Ubuntu_64",
       "hard_drive_interface": "sata",
       "boot_command": [
@@ -34,7 +37,7 @@
         "initrd=/install/initrd.gz -- <enter><wait>"
       ],
       "boot_wait": "10s",
-      "disk_size": 15360,
+      "disk_size": 10240,
       "virtualbox_version_file": null,
       "guest_additions_mode": "disable",
       "http_directory": "http",
@@ -70,7 +73,8 @@
   "post-processors": [
     {
       "type": "vagrant",
-      "output": "outputs/{{.BuildName}}.box",
+      "compression_level": 9,
+      "output": "../outputs/{{user `box_name`}}.box"
     }
   ]
 }

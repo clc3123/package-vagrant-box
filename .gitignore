@@ -1,4 +1,5 @@
 *.swp
 .DS_Store
-/packer_cache
-/outputs/*.box
+packer_cache
+*.iso
+*.box
